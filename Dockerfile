@@ -1,4 +1,4 @@
-FROM ubuntu
+FROM ubuntu:18.04
 MAINTAINER Wincent Balin <wincent.balin@gmail.com>
 
 # Update all packages
@@ -12,6 +12,9 @@ RUN DEBIAN_FRONTEND=noninteractive \
 RUN DEBIAN_FRONTEND=noninteractive \
     apt-get install -y \
         build-essential \
+        autoconf \
+        autogen \
+        libtool \
         mingw-w64 \
         gperf \
         pkg-config \
@@ -26,14 +29,14 @@ RUN DEBIAN_FRONTEND=noninteractive \
     apt-get -y clean
 
 # Enter versions!!!
-ENV LIBICONV_VERSION 1.15
+ENV LIBICONV_VERSION 1.16
 ENV ZLIB_VERSION 1.2.11
 ENV LIBMAD_VERSION 0.15.1b
 ENV LIBID3TAG_VERSION 0.15.1b
-ENV LIBOGG_VERSION 1.3.4
-ENV LIBVORBIS_VERSION 1.3.6
+ENV LIBOGG_VERSION 1.3.5
+ENV LIBVORBIS_VERSION 1.3.7
 ENV FLAC_VERSION 1.3.3
-ENV LIBSNDFILE_VERSION 1.0.28
+ENV LIBSNDFILE_VERSION 1.0.31
 ENV LIBPNG_VERSION 1.6.37
 ENV JPEG_VERSION 9c
 ENV JBIGKIT_VERSION 2.1
@@ -134,10 +137,11 @@ RUN ./configure --prefix=${C} --host=${CROSS_ARCH} --build=${BUILD_ARCH} --enabl
 WORKDIR ..
 
 # Download and compile libsndfile
-RUN wget -q -O - http://www.mega-nerd.com/libsndfile/files/libsndfile-${LIBSNDFILE_VERSION}.tar.gz | \
+RUN wget -q -O - https://github.com/libsndfile/libsndfile/archive/refs/tags/${LIBSNDFILE_VERSION}.tar.gz | \
     tar zxvf -
 WORKDIR libsndfile-${LIBSNDFILE_VERSION}
-RUN ./configure --prefix=${C} --host=${CROSS_ARCH} --build=${BUILD_ARCH} --enable-static --disable-shared CFLAGS="-I${C}/include -L${C}/lib" --disable-sqlite && \
+RUN autoreconf -i && \
+    ./configure --prefix=${C} --host=${CROSS_ARCH} --build=${BUILD_ARCH} --enable-static --disable-shared CFLAGS="-I${C}/include -L${C}/lib" --disable-sqlite && \
     make && \
     make install
 WORKDIR ..
